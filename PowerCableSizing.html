@@ -1,0 +1,435 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Power Cable Sizing</title>
+
+<link rel="stylesheet" type="text/css" href="assets/view.css" media="all">
+		<link rel="stylesheet" href="assets/tableCSSCode.css" type="text/css"/>
+<script type="text/javascript" src="assets/view.js"></script>
+
+<script src="JS/jquery.js"></script>
+
+<script type="text/javascript">
+
+ var voltage,feeder,pf,efficiency,phase,e_length,e_cable_od;
+    var Cp,Ch,Cg,CCic,flc;
+    var t_cable_od,ampacity,total_ampacity,min_cable,status_ampacity,core_qty;
+    var cable_R,cable_X,max_length,Vdrop,status_vdrop; 
+  $(document).ready(function()
+  {
+  	Cf = 1;
+  	Cp = 0.9;
+  	Ch = 0.9;
+
+
+  	//$("form").submit(function() {
+  	 $('#Calculate').click(function(){
+
+  	 	e_cable_od = Math.floor($("#e_cable_od").val());
+  	 	if(e_cable_od<150){
+  		Cg = 0.49;
+  		}else{
+  		Cg = 0.79;	
+  		}
+  		CCic = Cp*Ch*Cg*1;
+  	 
+  		//Calculate CCic
+  		$("#Cf").val(Cf);
+  		$("#Cp").val(Cp);
+  		$("#Ch").val(Ch);
+  		$("#Cg").val(Cg);
+  		$("#CCic").val(CCic.toPrecision(4));
+
+  		//Calculate FLC
+  		voltage = $("#voltage").val();
+  		feeder = $("#feeder").val();
+  		pf = $("#pf").val();
+  		efficiency = $("#efficiency").val();
+  		flc = feeder /(1.732*efficiency*pf*voltage);
+
+  		$("#flc").val(flc.toPrecision(6));
+
+
+  		//total cable size
+  		phase = $("#phase").val();
+  		e_length = $("#e_length").val();
+  		
+  		t_cable_od = phase*e_cable_od;
+  		$("#t_cable_od").val(t_cable_od);
+
+  		//ampacity based on OD
+  		core_qty = $('#core_qty').val();
+  		ampacity = $('#'+core_qty+' .'+e_cable_od).html();
+  		if(ampacity == undefined){
+  			$('#e_cable_od').val("CHANGE THIS VALUE");
+  			alert("OD size not exist");
+  		}else{
+  		$('#ampacity').val(ampacity);
+  		total_ampacity = phase*ampacity;
+  		$('#total_ampacity').val(total_ampacity);
+  		}
+
+  		//min cable current
+  		min_cable = flc/CCic;
+  		$('#min_cable').val(min_cable.toPrecision(8));
+
+  		//Status Check
+  		if(total_ampacity>min_cable){
+  			alert('Cable CSA status is Okay')
+  			$('#status_ampacity').val("OK");
+  		}else{
+  			alert('Cable CSA status is Too Small')
+  			$('#status_ampacity').val("Too Small");
+  		}
+
+  		//Resistans
+  		cable_R = $('#R .'+e_cable_od).html();
+  		$('#cable_R').val(cable_R);
+
+  		cable_X = $('#X .'+e_cable_od).html();
+  		$('#cable_X').val(cable_X);
+
+  		//Vdrop
+  		var sin_O = Math.sin(Math.acos(pf));
+  		$('#sin_0').val(sin_O);
+
+  		max_length = (voltage*0.05*1000*phase) / (flc*1.732 * ((cable_R*pf)+cable_X*sin_O));
+  		$('#max_length').val(max_length.toPrecision(8));
+  		vdrop = e_length/max_length;
+  		$('#vdrop').val(vdrop.toPrecision(4));
+  		if(vdrop<5){
+  			$('#status_vdrop').val('OK')
+  		}else{
+  			
+  			alert('Cable OD is to SMALL')
+  			$('#status_vdrop').val('Too Small')
+  		}
+
+return true;
+  	 });//end of button calculate
+
+  });
+
+</script>
+
+</head>
+<body id="main_body" >
+	
+	
+	<div id="form_container">
+	<img src="assets/decilogo.png" alt="">
+		<h1><a>{Sizing : Power Cable Sizing}</a></h1>
+		<form id="form_676462" class="appnitro"  method="post" action="">
+					<div class="form_description">
+			<h2>Power Cable Sizing</h2>
+			<p>Revision 0</p>
+		</div>		
+		<span id="result"></span>
+
+		<div style="float:left; width=300px">
+
+		<ul>
+			<h2> Parameter : </h2>
+		<li id="li_1" >
+		<label class="description" for="element_1">Voltage : </label>
+		<div>
+			<input type="text" name="voltage" id="voltage" value="690">  V
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Feeder Rating : </label>
+		<div>
+			<input type="text" name="feeder" id="feeder" value="90000">  W
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Power Factor :</label>
+		<div>
+			<input type="text" name="pf" id="pf" value="0.91">
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Efficency :  </label>
+		<div>
+			<input type="text" name="efficiency" id="efficiency" value="0.956">
+		</div> 
+		</li>
+
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Run Per Phase : </label>
+		<div>
+			<input type="text" name="phase" id="phase" value="1">
+		</div> 
+		</li>
+		
+		<h2> Estimation : </h2>
+		<li id="li_1" >
+		<label class="description" for="element_1">Estimated Length :  </label>
+		<div>
+			<input type="text" name="e_length" id="e_length" value="190"> m
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Estimated Cable Size :  </label>
+		<div>
+			<input type="text" name="e_cable_od" id="e_cable_od" value="95"> m2
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Core Cable : </label>
+		<div>
+			<input type="text" name="core_qty" id="core_qty" value="4">
+		</div> 
+		</li>
+
+		<li class="buttons">
+			    <input type="hidden" name="form_id" value="676462" />
+			    
+				<input id="Calculate" class="button_text" type="button" name="Calculate" value="Calculate" />
+		</li>
+	</div>
+		<div style="float:left; width:300px; padding-left:80px">
+		<h2> Calculation Full Load Current: </h2>
+		
+		<li id="li_1" >
+		<label class="description" for="element_1">Correction Factor (Cf) :  </label>
+		<div>
+			 <input type="text" name="Cf" id="Cf" disabled>
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Parallel Connection Factor (Cp) :   </label>
+		<div>
+			<input type="text" name="Cp" id="Cp" disabled>
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Harmonic Factor (Ch) : </label>
+		<div>
+			<input type="text" name="Ch" id="Ch" disabled>
+		</div> 
+		</li>
+
+			<li id="li_1" >
+		<label class="description" for="element_1">Grouping Factor (Cg) : </label>
+		<div>
+			<input type="text" name="Cg" id="Cg" disabled>
+		</div> 
+		</li>
+
+			<li id="li_1" >
+		<label class="description" for="element_1">Overall Factor CCic :  </label>
+		<div>
+			<input type="text" name="CCic" id="CCic" disabled>
+		</div> 
+		</li>
+
+
+			<li id="li_1" >
+		<label class="description" for="element_1">Full Load Current (FLC) :  </label>
+		<div>
+			<input type="text" name="flc" id="flc" disabled>
+		</div> 
+		</li>
+		
+		<h2> Calculation Ampacity: </h2>
+		<hr>
+			<li id="li_1" >
+		<label class="description" for="element_1">Total Cable Size :   </label>
+		<div>
+			<input type="text" name="t_cable_od" id="t_cable_od" disabled>
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Cable Ampacity :    </label>
+		<div>
+			<input type="text" name="ampacity" id="ampacity" disabled> m2
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Total Cable Ampacity :     </label>
+		<div>
+			<input type="text" name="total_ampacity" id="total_ampacity" disabled> m2
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Min Cable Current :      </label>
+		<div>
+			<input type="text" name="min_cable" id="min_cable" disabled> A
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Status Current Ampacity :       </label>
+		<div>
+			<input type="text" name="status_ampacity" id="status_ampacity" disabled>
+		</div> 
+		</li>
+
+	</div>
+		<div style="float:right; width:300px">
+		<h2> Voltage Drop : </h2>
+		<hr>
+		<li id="li_1" >
+		<label class="description" for="element_1">Cable Resistance :        </label>
+		<div>
+			<input type="text" name="cable_R" id="cable_R" disabled> Ohm
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Cable Reactance :         </label>
+		<div>
+			<input type="text" name="cable_X" id="cable_X" disabled> Ohm
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Max Length :          </label>
+		<div>
+			<input type="text" name="max_length" id="max_length" disabled> m
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Sin (0) :           </label>
+		<div>
+			<input type="text" name="sin_0" id="sin_0" disabled>
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Voltage Drop :           </label>
+		<div>
+			<input type="text" name="vdrop" id="vdrop" disabled>
+		</div> 
+		</li>
+
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Status VDrop :           </label>
+		<div>
+			<input type="text" name="status_vdrop" id="status_vdrop" disabled>
+		</div> 
+		</li>
+
+	</div>
+		
+					</ul>
+
+
+		<br>
+		<br>
+
+		<div id="footer">
+			Copyright &copy; by DECI Team
+		</div>
+	</div>
+	<img id="bottom" src="bottom.png" alt="">
+
+		<div style="visibility:hidden">
+
+
+
+ 		<div id="2">
+ 			<span class="2">31</span>
+ 			<span class="4">43</span>
+ 			<span class="6">55</span>
+ 			<span class="10">75</span>
+ 			<span class="16">100</span>
+ 			<span class="25">130</span>
+ 			<span class="35">161</span>
+ 			<span class="50">196</span>
+ 			<span class="70">251</span>
+ 			<span class="95">306</span>
+ 			<span class="120">357</span>
+ 			<span class="150">412</span>
+ 			<span class="185">472</span>
+ 			<span class="240">558</span>
+ 			<span class="300">645</span>
+ 		</div>
+ 		<div id="3">
+ 			<span class="2">28</span>
+ 			<span class="4">37</span>
+ 			<span class="6">47</span>
+ 			<span class="10">65</span>
+ 			<span class="16">87</span>
+ 			<span class="25">110</span>
+ 			<span class="35">137</span>
+ 			<span class="50">167</span>
+ 			<span class="70">214</span>
+ 			<span class="95">296</span>
+ 			<span class="120">301</span>
+ 			<span class="150">347</span>
+ 			<span class="185">397</span>
+ 			<span class="240">468</span>
+ 			<span class="300">540</span>
+ 		</div>
+ 		<div id="4">
+ 			<span class="2">28</span>
+ 			<span class="4">37</span>
+ 			<span class="6">47</span>
+ 			<span class="10">65</span>
+ 			<span class="16">87</span>
+ 			<span class="25">110</span>
+ 			<span class="35">137</span>
+ 			<span class="50">167</span>
+ 			<span class="70">214</span>
+ 			<span class="95">296</span>
+ 			<span class="120">301</span>
+ 			<span class="150">347</span>
+ 			<span class="185">397</span>
+ 			<span class="240">468</span>
+ 			<span class="300">540</span>
+ 		</div>
+
+ 		<div id="R">
+ 		<span class="2">9.369</span>
+ 			<span class="4">5.993</span>
+ 			<span class="6">3.965</span>
+ 			<span class="10">2.346</span>
+ 			<span class="16">1.479</span>
+ 			<span class="25">0.9359</span>
+ 			<span class="35">0.6745</span>
+ 			<span class="50">0.4985</span>
+ 			<span class="70">0.3443</span>
+ 			<span class="95">0.249</span>
+ 			<span class="120">0.1964</span>
+ 			<span class="150">0.1607</span>
+ 			<span class="185">0.1275</span>
+ 			<span class="240">0.0972</span>
+ 			<span class="300">0.774</span>
+ 		</div>
+ 		<div id="X">
+ 			<span class="2">0.094</span>
+ 			<span class="4">0.89</span>
+ 			<span class="6">0.84</span>
+ 			<span class="10">0.04</span>
+ 			<span class="16">0.75</span>
+ 			<span class="25">0.75</span>
+ 			<span class="35">0.74</span>
+ 			<span class="50">0.73</span>
+ 			<span class="70">0.071</span>
+ 			<span class="95">0.07</span>
+ 			<span class="120">0.69</span>
+ 			<span class="150">0.07</span>
+ 			<span class="185">0.07</span>
+ 			<span class="240">0.69</span>
+ 			<span class="300"></span>
+ 		</div>
+
+ 	</div>
+	</body>
+</html>

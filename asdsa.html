@@ -1,0 +1,29 @@
+//stack 2
+    //circle 4
+    var H0 = Math.sqrt( Math.pow((od_arr[0]/2+od_arr[3]/2),2) - Math.pow((od_arr[0]/2),2) )
+    var H1 = H0 + od_arr[0]/2;
+
+    //$('#result').append('H0='+H0+',H1='+H1+'<br');
+    var X4 = X0 + od_arr[0]/1;
+    var Y4 = Y0 - H1;
+
+    ctx.beginPath();
+    ctx.arc(X4,Y4,od_arr[3]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 5
+    var H2 = Math.sqrt( Math.pow((od_arr[1]/2+od_arr[4]/2),2) - Math.pow((od_arr[1]/2),2) )
+    var H3 = H2 + od_arr[1]/2;
+
+    var X5 = X0 + od_arr[0]/1 + od_arr[1]/1;
+    var Y5 = Y0 - H3; 
+
+    ctx.beginPath();
+    ctx.arc(X5,Y5,od_arr[4]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();   
+
+
+    x_pos = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/1 + 15 ;
+    y_pos = Y0;
+
+    last_od = 15

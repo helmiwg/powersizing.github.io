@@ -1,0 +1,2143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Cable Tray Sizing</title>
+
+<link rel="stylesheet" type="text/css" href="assets/view2.css" media="all">
+
+
+<link rel="stylesheet" href="assets/tableCSSCode.css" type="text/css"/>
+
+<script src="JS/jquery.js"></script>
+
+
+
+<script type="text/javascript" src="assets/view.js"></script>
+
+
+
+<script type="text/javascript">
+
+
+
+ var qty,group_qty;
+ var wid,hei,od;
+ var stacked_power_multi = 5;
+ var stacked_inst = 12;
+ var stacked_power_single = 3;
+ var stacked = 5;
+
+ //instrument
+var inst_total = 0;
+var stack_1 = 0;
+var stack_2 = 0;
+var stack_3 = 0;
+
+ var stack_arr = [];
+var od_arr_1 = [];
+var od_arr_2 = [];
+var od_arr_3 = [];
+
+
+ var scale = 1;
+ var csa400_od = 50;
+
+ var qty_core,qty_multi,qty_inst,qty_multi_lv;
+ var group_qty_core,group_qty_multi,group_qty_control,group_qty_150mm,group_qty_big;
+ var group_qty_lv,group_qty_lv_150mm;
+
+var bool_grouping = false;
+
+var last_od = 0;
+     var od_arr = [];
+
+      var od_arr_core = [];
+      var od_arr_multi = [];
+      var od_arr_150mm = [];
+      var od_arr_control = [];
+      var od_arr_big = [];
+      var od_arr_lv = [];
+      var od_arr_lv_150mm = [];
+
+var group_member = 5;
+ function descending( a, b ) {
+    return b - a;
+}
+
+
+//debug tref5
+var x = 100;
+var y = 300;
+var canvas;
+var ctx;
+var scale ;
+var w_tray ;
+var h_tray ;
+var wid;
+var hei;
+//origin with tolerance
+var X0 ;
+var Y0 ;
+var x_pos;
+var y_pos;
+var min_dist = 15;
+var bool_system = true;
+
+function hideD(div_id) {
+     //$(div_id).addClass("css_hide");
+     $(div_id).hide('fast');
+};
+
+function showD(div_id) {
+     //$(div_id).removeClass("css_hide");
+     $(div_id).show('fast');
+};
+
+
+
+//grouping
+function grouping(target_div,title_div,suffix,group_cab,stacked_cab,od_arr_cab){
+  //grouping
+      var input='';
+      $(target_div).html('');
+      $(target_div).html("<h3>"+title_div+" OD </h3>");
+      var iz = 0;
+      var jx = 1;
+      var ix = 1;
+      var temp = '';
+      for(jx=1;jx<=group_cab;jx++){
+
+        input ="<div id="+jx+" class=sub-section>";
+        input += title_div+ " : "+jx+" <br>";
+      
+         for(ix=1;ix<=stacked_cab;ix++){
+          if(od_arr_cab[iz]==undefined){
+            temp = '';
+          }else{
+            temp = od_arr_cab[iz];
+          }
+        input += 'OD - '+ix+' : <input type="text" id='+suffix+'-'+jx+'-'+ix+' style="width:50px; text-align=right;" value="'+temp+'"><br>';  
+        iz++;
+        
+        }
+        input += "</div> <br> ";
+        $(target_div).append(input);
+        
+      }
+} //end of grouping
+
+
+function create_tray(){
+  canvas = document.getElementById('canvas');
+    if (canvas.getContext){
+    ctx = canvas.getContext('2d');
+
+    //variable
+   w_tray = wid*scale;
+   h_tray = hei*scale;
+    
+   
+    //tolerance edge of tray
+    var x_min = 25*scale;
+    $('#result').append('Create Tray Start <br>');
+    //creating tray
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.strokeStyle = '#030304'; 
+
+    ctx.moveTo(x,y); // go to coordinate
+    ctx.lineTo(x,y+h_tray); //vertical left side
+    ctx.lineTo(x+w_tray,y+h_tray); //Horizontal
+    ctx.lineTo(x+w_tray,y); //vertical right side     
+    ctx.stroke();
+    //end of creating tray
+    ctx.closePath()
+     //origin with tolerance
+    X0 = x + x_min;
+    Y0 = y + h_tray;
+
+
+
+    }//canvas
+    
+
+}
+
+//instrument unlimited qty and 3 stacked formation
+
+//draw tref3
+function draw_inst(od_arr_1,od_arr_2,od_arr_3){
+  //od_arr.sort(descending);
+  var i = 0;
+  var j = 0;
+
+  var X1 = 0;
+  var Y1 = 0;
+  var X2 = 0;
+  var Y2 = 0;
+  var X3 = 0;
+  var Y3 = 0;
+
+  var x_temp = 0;
+  var y_temp = 0;
+    if (canvas.getContext){
+
+        //stack 1
+        for(i=0;i<stack_1;i++){
+            X1 = 0;
+            Y1 = 0;
+            if(i==0){
+            X1 = X0 + od_arr_1[i]/2;
+            }else{
+
+
+                for(j=0;j<i;j++){
+                    X1 += od_arr_1[j]/1; 
+                }
+            
+            X1 += X0 + od_arr_1[i]/2;
+
+            }
+               Y1 = Y0 - od_arr_1[i]/2;
+
+
+            
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#194cb0'; 
+            ctx.arc(X1,Y1,od_arr_1[i]/2,0,Math.PI*2,true); // Outer circle
+            ctx.stroke();
+
+            //length
+            x_temp += od_arr_1[i]/1;
+
+        }
+
+        //stack 2
+        for(i=0;i<stack_2;i++){
+
+        //stack 2
+        var H20 = Math.sqrt( Math.pow((od_arr_1[i]/2+od_arr_2[i]/2),2) - Math.pow((od_arr_1[i]/2),2) )
+        var H21 = H20 + od_arr_1[i]/2;
+
+        //stack 3
+        var H30 = Math.sqrt( Math.pow((od_arr_2[i]/2+od_arr_3[i]/2),2) - Math.pow((od_arr_2[i]/2),2) )
+        var H31 = H20 + H30 + od_arr_2[i]/2;
+
+
+        X2 = 0;
+        X3 = 0;
+        //$('#result').append('H0='+H0+',H1='+H1+'<br');
+        for(j=0;j<i;j++){
+                    X2 += od_arr_1[j]/1; 
+                    //X3 += od_arr_2[j]/2 + od_arr_1[j]/1; 
+
+                    //X3 += od_arr_1[j]/1;
+                }
+
+        for(j=0;j<=i;j++){
+            X3 += od_arr_1[j]/1;
+        }
+
+
+        for(j=0;j<i;j++){
+            //X3 += od_arr_2[j]/1;
+        }
+
+
+        X2 += X0 + od_arr_1[i]/1;
+        Y2 = Y0 - H21;
+
+        X3 += X0 + od_arr_2[i]/2;
+
+        Y3 = Y0 - H31;
+
+
+        ctx.beginPath();
+        ctx.arc(X2,Y2,od_arr_2[i]/2,0,Math.PI*2,true); // Outer circle
+        ctx.stroke();
+
+
+        ctx.beginPath();
+        ctx.arc(X3,Y3,od_arr_3[i]/2,0,Math.PI*2,true); // Outer circle
+        ctx.stroke();
+
+        }
+
+       
+
+
+    last_od = 10;
+    x_pos = X0 + x_temp + 10;
+    y_pos = Y0;
+    
+    }//canvas
+  }//end draw_tref3    
+
+
+
+// draw single core normal
+function draw_core(od_arr){
+
+   if (canvas.getContext){
+    
+    //circle 1
+    var X1 = X0 + od_arr[0]/2;
+    var Y1 = Y0 - od_arr[0]/2;
+    
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#194cb0'; 
+    ctx.arc(X1,Y1,od_arr[0]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    last_od = od_arr[0];
+
+    //circle 2 1xOD
+    var X2 = X0  + 2*(od_arr[0]/1) + od_arr[1]/2;
+    var Y2 = Y0 - od_arr[1]/2;
+     
+    if(od_arr[1]>0){
+        last_od = od_arr[1];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X2,Y2,od_arr[1]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 3
+    var X3 = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + od_arr[2]/2;
+    var Y3 = Y0 - od_arr[2]/2;
+
+     if(od_arr[2]>0){
+        last_od = od_arr[2];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X3,Y3,od_arr[2]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 4
+    var X4 = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + 2*od_arr[2]/1 + od_arr[3]/2;
+    var Y4 = Y0 - od_arr[3]/2;
+
+     if(od_arr[3]>0){
+        last_od = od_arr[3];
+    }
+
+
+    ctx.beginPath();
+    ctx.arc(X4,Y4,od_arr[3]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    //circle 5
+    var X5 = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + 2*od_arr[2]/1 + 2*od_arr[3]/1 + od_arr[4]/2;
+    var Y5 = Y0 - od_arr[4]/2;
+
+     if(od_arr[4]>0){
+        last_od = od_arr[4];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X5,Y5,od_arr[4]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 6
+    var X6 = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + 2*od_arr[2]/1 + 2*od_arr[3]/1 + 2*od_arr[4]/1 + od_arr[5]/2;
+    var Y6 = Y0 - + od_arr[5]/2;
+
+     if(od_arr[5]>0){
+        last_od = od_arr[5];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X6,Y6,+ od_arr[5]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    x_pos = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + 2*od_arr[2]/1 + 2*od_arr[3]/1 + 2*od_arr[4]/1 + 2*(od_arr[5]/1) ;
+    y_pos = Y0;
+
+   
+
+   
+
+   }
+
+}//end of draw single core
+
+
+// draw single core normal
+function draw_multi_hv_150mm(od_arr){
+
+   if (canvas.getContext){
+    
+     //circle 1
+    var X1 = X0 + od_arr[0]/2;
+    var Y1 = Y0 - od_arr[0]/2;
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#194cb0'; 
+    ctx.arc(X1,Y1,od_arr[0]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    last_od = od_arr[0];
+
+    //circle 2 1xOD
+    var X2 = X0  + 2*od_arr[0]/1 + od_arr[1]/2;
+    var Y2 = Y0 - od_arr[1]/2;
+    if(od_arr[1]>0){
+        last_od = od_arr[1];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X2,Y2,od_arr[1]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 3
+    var X3 = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + od_arr[2]/2;
+    var Y3 = Y0 - od_arr[2]/2;
+
+     if(od_arr[2]>0){
+        last_od = od_arr[2];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X3,Y3,od_arr[2]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 4
+    var X4 = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + 2*od_arr[2]/1 + od_arr[3]/2;
+    var Y4 = Y0 - od_arr[3]/2;
+
+     if(od_arr[3]>0){
+        last_od = od_arr[3];
+    }
+
+
+    ctx.beginPath();
+    ctx.arc(X4,Y4,od_arr[3]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    //circle 5
+    var X5 = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + 2*od_arr[2]/1 + 2*od_arr[3]/1 + od_arr[4]/2;
+    var Y5 = Y0 - od_arr[4]/2;
+
+     if(od_arr[4]>0){
+        last_od = od_arr[4];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X5,Y5,od_arr[4]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    
+
+    x_pos = X0 + 2*od_arr[0]/1 + 2*od_arr[1]/1 + 2*od_arr[2]/1 + 2*od_arr[3]/1 + 2*od_arr[4]/1 ;
+    y_pos = Y0;
+   }
+
+}//end of draw single core
+
+
+// draw multi core > 150mm 
+function draw_multi_lv_150mm(od_arr){
+
+   if (canvas.getContext){
+    
+    //circle 1
+    var X1 = X0 + od_arr[0]/2;
+    var Y1 = Y0 - od_arr[0]/2;
+    last_od = od_arr[0];
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#194cb0'; 
+    ctx.arc(X1,Y1,od_arr[0]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 2 1xOD
+    var X2 = X0  + od_arr[0]/1 + od_arr[1]/2;
+    var Y2 = Y0 - od_arr[1]/2;
+    
+    if(od_arr[1]>0){
+        last_od = od_arr[1];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X2,Y2,od_arr[1]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 3
+    var X3 = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/2;
+    var Y3 = Y0 - od_arr[2]/2;
+
+    if(od_arr[2]>0){
+        last_od = od_arr[2];
+    }
+
+    ctx.beginPath();
+    ctx.arc(X3,Y3,od_arr[2]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    x_pos = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/1 + last_od/1;
+    y_pos = Y0;
+    
+   }
+
+}//end of draw multi core > 150mm 
+
+
+
+//draw tref3
+function draw_tref3(od_arr){
+  //od_arr.sort(descending);
+
+
+    if (canvas.getContext){
+    var X1 = X0 + od_arr[0]/2;
+    var Y1 = Y0 - od_arr[0]/2;
+
+    last_od = od_arr[0];
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#194cb0'; 
+    ctx.arc(X1,Y1,od_arr[0]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+   
+
+
+    //circle 2
+    var X2 = X0  + od_arr[0]/1 + od_arr[1]/2;
+    var Y2 = Y0 - od_arr[1]/2;
+    if(od_arr[1]>0){
+         last_od = od_arr[1];
+    }
+
+
+    ctx.beginPath();
+    ctx.arc(X2,Y2,od_arr[1]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    
+    //circle 3
+    var H0 = Math.sqrt( Math.pow((od_arr[0]/2+od_arr[2]/2),2) - Math.pow((od_arr[0]/2),2) )
+    var H1 = H0 + od_arr[0]/2;
+
+    //$('#result').append('H0='+H0+',H1='+H1+'<br');
+    var X4 = X0 + od_arr[0]/1;
+    var Y4 = Y0 - H1;
+
+    ctx.beginPath();
+    ctx.arc(X4,Y4,od_arr[2]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+ 
+
+    x_pos = X0 + od_arr[0]/1 + od_arr[1]/1 + 2*last_od; //2x1OD
+    y_pos = Y0;
+    last_od = 2*last_od;
+    
+    
+    }//canvas
+  }//end draw_tref3    
+
+
+
+//draw tref5
+function draw_tref5(od_arr){
+  //od_arr.sort(descending);
+
+
+    if (canvas.getContext){
+
+
+    //Circle 1
+    var X1 = X0 + od_arr[0]/2;
+    var Y1 = Y0 - od_arr[0]/2;
+
+    ctx.beginPath();
+     ctx.strokeStyle = '#194cb0'; 
+    ctx.arc(X1,Y1,od_arr[0]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+   
+
+
+    //circle 2
+    var X2 = X0  + od_arr[0]/1 + od_arr[1]/2;
+    var Y2 = Y0 - od_arr[1]/2;
+    //$('#result').append('X2='+X2+',Y2='+Y2+'<br');
+
+    ctx.beginPath();
+    ctx.arc(X2,Y2,od_arr[1]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    //circle 3
+    var X3 = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/2;
+    var Y3 = Y0 - od_arr[2]/2;
+
+    ctx.beginPath();
+    ctx.arc(X3,Y3,od_arr[2]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+
+    //stack 2
+    //circle 4
+    var H0 = Math.sqrt( Math.pow((od_arr[0]/2+od_arr[3]/2),2) - Math.pow((od_arr[0]/2),2) )
+    var H1 = H0 + od_arr[0]/2;
+
+    //$('#result').append('H0='+H0+',H1='+H1+'<br');
+    var X4 = X0 + od_arr[0]/1;
+    var Y4 = Y0 - H1;
+
+    ctx.beginPath();
+    ctx.arc(X4,Y4,od_arr[3]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 5
+    var H2 = Math.sqrt( Math.pow((od_arr[1]/2+od_arr[4]/2),2) - Math.pow((od_arr[1]/2),2) )
+    var H3 = H2 + od_arr[1]/2;
+
+    var X5 = X0 + od_arr[0]/1 + od_arr[1]/1;
+    var Y5 = Y0 - H3; 
+
+    ctx.beginPath();
+    ctx.arc(X5,Y5,od_arr[4]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();   
+
+
+    x_pos = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/1 + 15 ;
+    y_pos = Y0;
+
+    last_od = 15
+
+    
+
+
+    }//canvas
+  }//end draw_tref5    
+
+  function draw_tref12(od_arr){
+  //od_arr.sort(descending);
+
+
+    if (canvas.getContext){
+    var X1 = X0 + od_arr[0]/2;
+    var Y1 = Y0 - od_arr[0]/2;
+
+    //$('#result').append('X1='+X1+',Y1='+Y1+'<br');
+
+    ctx.beginPath();
+     ctx.strokeStyle = '#194cb0';
+    ctx.arc(X1,Y1,od_arr[0]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+   
+
+
+    //circle 2
+    var X2 = X0  + od_arr[0]/1 + od_arr[1]/2;
+    var Y2 = Y0 - od_arr[1]/2;
+    //$('#result').append('X2='+X2+',Y2='+Y2+'<br');
+
+    ctx.beginPath();
+    ctx.arc(X2,Y2,od_arr[1]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    //circle 3
+    var X3 = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/2;
+    var Y3 = Y0 - od_arr[2]/2;
+
+    ctx.beginPath();
+    ctx.arc(X3,Y3,od_arr[2]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 4
+    var X4 = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/1 + od_arr[3]/2;
+    var Y4 = Y0 - od_arr[3]/2;
+
+    ctx.beginPath();
+    ctx.arc(X4,Y4,od_arr[3]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 5
+    var X5 = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/1 + od_arr[3]/1 + od_arr[4]/2;
+    var Y5 = Y0 - od_arr[4]/2;
+
+    ctx.beginPath();
+    ctx.arc(X5,Y5,od_arr[4]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 6
+    var X6 = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/1 + od_arr[3]/1 + od_arr[4]/1 + od_arr[5]/2;
+    var Y6 = Y0 - + od_arr[5]/2;
+
+    ctx.beginPath();
+    ctx.arc(X6,Y6,+ od_arr[5]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    //------------- level 2 -----------------//
+
+    //cricle 7
+    X1 = X0 + od_arr[6]/2;
+    Y1 = Y0 - od_arr[6]/2 - od_arr[0]/1;
+
+    //$('#result').append('X1='+X1+',Y1='+Y1+'<br');
+
+    ctx.beginPath();
+    ctx.arc(X1,Y1,od_arr[6]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+   
+
+
+    //circle 8
+    X2 = X0  + od_arr[6]/1 + od_arr[7]/2;
+    Y2 = Y0 - od_arr[7]/2 - od_arr[1]/1;
+    //$('#result').append('X2='+X2+',Y2='+Y2+'<br');
+
+    ctx.beginPath();
+    ctx.arc(X2,Y2,od_arr[7]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    //circle 9
+    X3 = X0 + od_arr[6]/1 + od_arr[7]/1 + od_arr[8]/2;
+    Y3 = Y0 - od_arr[8]/2 - od_arr[2]/1;
+
+    ctx.beginPath();
+    ctx.arc(X3,Y3,od_arr[8]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 10
+    X4 = X0 + od_arr[6]/1 + od_arr[7]/1 + od_arr[8]/1 + od_arr[9]/2;
+    Y4 = Y0 - od_arr[9]/2 - od_arr[3]/1;
+
+    ctx.beginPath();
+    ctx.arc(X4,Y4,od_arr[9]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 11
+    X5 = X0 + od_arr[6]/1 + od_arr[7]/1 + od_arr[8]/1 + od_arr[9]/1 + od_arr[10]/2;
+    Y5 = Y0 - od_arr[10]/2 - od_arr[4]/1;
+
+    ctx.beginPath();
+    ctx.arc(X5,Y5,od_arr[10]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+    //circle 12
+    X6 = X0 + od_arr[6]/1 + od_arr[7]/1 + od_arr[8]/1 + od_arr[9]/1 + od_arr[10]/1 + od_arr[11]/2;
+    Y6 = Y0 - + od_arr[11]/2 - od_arr[5]/1;
+
+    ctx.beginPath();
+    ctx.arc(X6,Y6,+ od_arr[11]/2,0,Math.PI*2,true); // Outer circle
+    ctx.stroke();
+
+
+    x_pos = X0 + od_arr[0]/1 + od_arr[1]/1 + od_arr[2]/1 + od_arr[3]/1 + od_arr[4]/1 + od_arr[5]/1 + 10;
+    y_pos = Y0;
+
+    last_od = 10;
+
+    }//canvas
+  }//end draw_tref12 
+
+  //main function
+  $(document).ready(function()
+  {
+
+
+     //var div_power = $('#power_qty');
+     //var div_inst = $('#instrument_qty')
+    //div_power.showD();
+    //div_inst.hideD();
+
+    //showD('#power_qty');
+    //hideD('#instrument_qty');;
+
+    $('#instrument_qty').css('display','none');
+        //select system
+       $('input:radio').click(
+                        function(){
+                            if ($('input[name=type_system]:checked').val() == 'power') {           
+                            //alert('Power');
+                            stacked = 5;
+                            min_dist = 15;
+                            bool_system = true;
+                            showD('#power_qty');
+    hideD('#instrument_qty');
+
+                            } else{
+                            //alert('Inst');
+                            stacked = 12;
+                            min_dist = 10;
+                            bool_system = false;
+                            hideD('#power_qty');
+    showD('#instrument_qty');
+
+                            }  
+                        }
+                   );  
+
+
+     $('#recomend').hide();
+
+     //Populate Instrument System
+  	 $('#Populate_inst').click(function(){
+        bool_grouping = false;
+        $("#section_core").html("");
+        $("#section_multi").html("");
+        $("#section_control").html("");
+  	   	
+        //get quantity of instrument
+        qty = $("#qty_inst").val();
+      	var ix = 1;
+      	var input = 'a';
+
+      	$("#section2").html("");
+
+        stack_3 = Math.ceil((qty-3)/3);
+        stack_2 = stack_3 + 1;
+        stack_1 = stack_2 + 1;
+
+        stack_arr = [stack_1,stack_2,stack_3];
+
+        var jx=1;
+    
+        for(jx=1;jx<=3;jx++){
+
+        input ="<div id="+jx+" class=sub-section>";
+        input +="Stack "+jx+" <br>";
+        
+      
+         for(ix=1;ix<=stack_arr[jx-1];ix++){
+       	input += 'OD - '+ix+' : <input type="text" id=OD-'+jx+'-'+ix+' style="width:50px; text-align=right;"><br>';  
+        
+        }
+        input += "</div> <br> ";
+        $('#section2').append(input);
+        
+      }
+    $('#recomend').hide();
+return true;
+  	 });//end of button Populate
+
+
+
+    //Populate Power System
+     $('#Populate_power').click(function(){
+        bool_grouping = false;
+        bool_grouping = false;
+        qty_core = $("#qty_core").val();
+        qty_multi = $("#qty_multi").val();
+        qty_multi_lv = $("#qty_multi_lv").val();
+        qty_control = $("#qty_control").val();
+     
+        var input = '';
+        var ix = 1;
+        var jx=1;
+        //clear instrument
+        $("#section2").html("");
+        $("#section_big").html("");
+        $("#section_core").html("");
+        $("#section_150mm").html("");
+        $("#section_multi").html("");
+        $("#section_lv_150mm").html("");
+        $("#section_lv").html("");
+        $("#section_control").html("");
+
+
+        //---------------------------------------------------------------------------------------
+        //single core stacked 3
+        $("#section_core").html("<h3>Single Core OD </h3>");
+        group_qty_core = Math.ceil(qty_core/3);
+        qty = group_qty_core*qty_core;
+        
+        for(jx=1;jx<=group_qty_core;jx++){
+
+        input ="<div id="+jx+" class=sub-section>";
+        input +="Group "+jx+" <br>";
+        
+      
+        for(ix=1;ix<=3;ix++){
+        input += '#'+ix+' : <input type="text" id=single-'+jx+'-'+ix+' style="width:50px; text-align=right;"><br>';  
+        
+        }
+        input += "</div> <br> ";
+        $('#section_core').append(input);
+        
+        }
+        //end of single core
+        //---------------------------------------------------------------------------------------
+
+        //---------------------------------------------------------------------------------------
+        // multi core HV stacked non stacked
+          $("#section_multi").html("<h3>Multi Core HV OD</h3>");
+        ix = 1;
+        jx=1;
+
+        group_qty_multi = Math.ceil(qty_multi/stacked);
+        qty = group_qty_multi*qty_multi;
+      
+        for(jx=1;jx<=group_qty_multi;jx++){
+
+        input ="<div id="+jx+" class=sub-section>";
+        input +="Group "+jx+" <br>";
+        
+      
+        for(ix=1;ix<=stacked;ix++){
+        input += '#'+ix+' : <input type="text" id=multi-'+jx+'-'+ix+' style="width:50px; text-align=right;"><br>';  
+        
+        }
+        input += "</div> <br> ";
+        $('#section_multi').append(input);
+        
+        }//end of multicore
+        //---------------------------------------------------------------------------------------
+
+
+        //---------------------------------------------------------------------------------------
+        // multi core LV stacked non stacked
+          $("#section_lv").html("<h3>Multi Core LV OD</h3>");
+        ix = 1;
+        jx=1;
+
+        group_qty_lv = Math.ceil(qty_multi_lv/stacked);
+        qty = group_qty_lv*qty_multi_lv;
+      
+        for(jx=1;jx<=group_qty_lv;jx++){
+
+        input ="<div id="+jx+" class=sub-section>";
+        input +="Group "+jx+" <br>";
+        
+      
+        for(ix=1;ix<=stacked;ix++){
+        input += '#'+ix+' : <input type="text" id=lv-'+jx+'-'+ix+' style="width:50px; text-align=right;"><br>';  
+        
+        }
+        input += "</div> <br> ";
+        $('#section_lv').append(input);
+        
+        }//end of multicore
+        //---------------------------------------------------------------------------------------
+
+
+
+        //---------------------------------------------------------------------------------------
+        // Control stacked 12
+          $("#section_control").html("<h3>Control/Signal OD </h3>");
+        ix = 1;
+        jx=1;
+
+        group_qty_control = Math.ceil(qty_control/12);
+        qty = group_qty_control*qty_control;
+      
+        for(jx=1;jx<=group_qty_control;jx++){
+
+        input ="<div id="+jx+" class=sub-section>";
+        input +="Group "+jx+" <br>";
+        
+      
+        for(ix=1;ix<=12;ix++){
+        input += '#'+ix+' : <input type="text" id=control-'+jx+'-'+ix+' style="width:50px; text-align=right;"><br>';  
+        
+        }
+        input += "</div> <br> ";
+        $('#section_control').append(input);
+        
+        }//end of control
+        //---------------------------------------------------------------------------------------
+
+    $('#recomend').hide();
+return true;
+     });//end of button Populate Power System
+    //---------------------------------------------------------------------------------------------------------------------------------------
+
+    	  
+    //----------------------------------------------------------------------------------------------------------------------------------------
+    //sorting and grouping function
+  	$('#Sorting').click(function(){
+      var iz = 0;
+      var iy = 0;
+
+      var temp_od;
+        var input='';
+
+      if(bool_grouping == true){
+        //-----------------------------------------------------------------------------------
+        //Sorting Lagi / Sehabis di sorting
+        //-----------------------------------------------------------------------------------
+        if(group_qty_core>0){
+
+            iy = 0;
+            for(jx=1;jx<=group_qty_core;jx++){      
+             for(ix=1;ix<=3;ix++){
+                od_arr_core[iy] = $('#core-'+jx+'-'+ix).val();
+                iy++; 
+                } 
+            }
+        od_arr_core.sort(descending);
+        grouping('#section_core','Single Core','core',group_qty_core,3,od_arr_core);
+        }
+
+        if(group_qty_big>0){
+
+                iy = 0;
+            for(jx=1;jx<=group_qty_big;jx++){      
+             for(ix=1;ix<=6;ix++){
+                od_arr_big[iy] = $('#CSA-'+jx+'-'+ix).val();
+                iy++; 
+                } 
+            }
+        od_arr_big.sort(descending);   
+        grouping('#section_big','Single CSA 650','CSA',group_qty_big,6,od_arr_big);
+        }
+
+        if(group_qty_150mm>0){
+
+                iy = 0;
+            for(jx=1;jx<=group_qty_150mm;jx++){      
+             for(ix=1;ix<=3;ix++){
+                od_arr_150mm[iy] = $('#150mm-'+jx+'-'+ix).val();
+                iy++; 
+                } 
+            }
+        od_arr_150mm.sort(descending);  
+        grouping('#section_150mm','Multi HV > 150','150mm',group_qty_150mm,3,od_arr_150mm);
+
+        }
+
+        if(group_qty_multi>0){
+
+                 iy = 0;
+            for(jx=1;jx<=group_qty_multi;jx++){      
+             for(ix=1;ix<=5;ix++){
+                od_arr_multi[iy] = $('#multi-'+jx+'-'+ix).val();
+                iy++; 
+                } 
+            }
+        od_arr_multi.sort(descending);  
+
+
+          grouping('#section_multi','Multi HV < 150','multi',group_qty_multi,5,od_arr_multi);
+        }
+
+        if(group_qty_lv_150mm>0){
+
+                 iy = 0;
+            for(jx=1;jx<=group_qty_lv_150mm;jx++){      
+             for(ix=1;ix<=3;ix++){
+                od_arr_lv_150mm[iy] = $('#LV150mm-'+jx+'-'+ix).val();
+                iy++; 
+                } 
+            }
+
+        od_arr_lv_150mm.sort(descending);  
+
+          grouping('#section_lv_150mm','Multi LV > 150','LV150mm',group_qty_lv_150mm,3,od_arr_lv_150mm);
+        }
+
+         if(group_qty_lv>0){
+
+                 iy = 0;
+            for(jx=1;jx<=group_qty_lv;jx++){      
+             for(ix=1;ix<=5;ix++){
+                od_arr_lv[iy] = $('#LV-'+jx+'-'+ix).val();
+                iy++; 
+                } 
+            }
+        od_arr_lv.sort(descending);  
+
+          grouping('#section_lv','Multi LV < 150','LV',group_qty_lv,5,od_arr_lv);
+        }
+
+        if(group_qty_control>0){
+
+             iy = 0;
+            for(jx=1;jx<=group_qty_control;jx++){      
+             for(ix=1;ix<=12;ix++){
+                od_arr_control[iy] = $('#control-'+jx+'-'+ix).val();
+                iy++; 
+                } 
+            }
+        od_arr_control.sort(descending);  
+
+          grouping('#section_control','Control/Signal','control',group_qty_control,12,od_arr_control);
+
+        }
+
+
+        //-----------------------------------------------------------------------------------
+        //End of Re-Run Sorting
+        //-----------------------------------------------------------------------------------
+
+      }else if(bool_system == true){
+        bool_grouping = true
+        //-----------------------------------------------------------------------------------
+        //Sorting Berdasarkan
+        //                      - Single Core CSA > 400
+        //                      - Single Core CSA < 400
+        //                      - Multi Core HV OD > 150
+        //                      - Multi Core HV OD < 150
+        //                      - Multi Core LV OD > 150
+        //                      - Multi Core LV OD < 150
+        //                      - Control/Signal         
+        //-----------------------------------------------------------------------------------      
+        
+      // SINGLE CORE  
+      //Get Single Core Text Field
+      iy = 0;
+      iz = 0;
+      for(jx=1;jx<=group_qty_core;jx++){
+      
+         for(ix=1;ix<=3;ix++){
+          temp_od = $('#single-'+jx+'-'+ix).val();
+          if( temp_od >= csa400_od){
+          od_arr_big[iy] = $('#single-'+jx+'-'+ix).val();
+          iy++; 
+          }else{
+            if(temp_od>0){
+          od_arr_core[iz] = $('#single-'+jx+'-'+ix).val(); 
+          iz++;
+          }
+          }
+        } 
+      }//end of Get Single Core Text Field
+
+
+      // Single Core CSA > 400
+
+      $('#section_core').html('');
+      $('#section_big').html('');
+      if(iy>0){
+        od_arr_big.sort(descending);
+        group_qty_big = Math.ceil(iy/6);
+        iy = group_qty_big*iy;
+
+        grouping('#section_big','Single CSA 650','CSA',group_qty_big,6,od_arr_big);
+  
+
+      }// End of Single Core CSA > 400
+
+
+      // Single Core CSA < 400
+      if(iz>0){
+        od_arr_core.sort(descending)
+        group_qty_core = Math.ceil(iz/3);
+        iz = group_qty_core*iz;
+
+        grouping('#section_core','Single Core','core',group_qty_core,3,od_arr_core);
+        
+      } // Single Core CSA < 400
+      
+      //END OF SINGLE CORE
+
+
+      // MULTI CORE HV
+      iz = 0;
+      iy = 0;
+      //Get  Multi Core HV Text Field
+      for(jx=1;jx<=group_qty_multi;jx++){
+      
+         for(ix=1;ix<=stacked;ix++){
+          //lets check for od => 150mm2
+          temp_od = $('#multi-'+jx+'-'+ix).val(); 
+          if( temp_od >= 150){
+          od_arr_150mm[iy] = $('#multi-'+jx+'-'+ix).val(); 
+          iy++;
+          }else{
+            if(temp_od>0){
+          od_arr_multi[iz] = $('#multi-'+jx+'-'+ix).val(); 
+          iz++;
+      }
+          }
+
+        } 
+      }//end of Get  Multi Core HV Text Field
+
+      // Multi Core HV > 150 
+      $('#section_multi').html('');
+      $('#section_150mm').html('');
+      if(iy>0){
+        od_arr_150mm.sort(descending);
+       
+        group_qty_150mm = Math.ceil(iy/6);
+        iy = group_qty_150mm*iy;
+
+        grouping('#section_150mm','Multi HV  > 150','150mm',group_qty_150mm,6,od_arr_150mm);
+
+      }// End OF Multi Core HV > 150 
+
+      // Multi Core HV < 150 
+      if(iz>0){
+        od_arr_multi.sort(descending);
+        
+
+        group_qty_multi = Math.ceil(iz/5);
+        iz = group_qty_multi*iz;
+
+        grouping('#section_multi','Multi HV < 150','multi',group_qty_multi,5,od_arr_multi);
+      } // End OF Multi Core HV < 150 
+
+      // END OF MULTI CORE HV
+
+      // MULTI CORE LV
+      iz = 0;
+      iy = 0;
+
+      //Get  Multi Core LV Text Field
+      for(jx=1;jx<=group_qty_lv;jx++){
+      
+         for(ix=1;ix<=stacked;ix++){
+          //lets check for od => 150mm2
+          temp_od = $('#lv-'+jx+'-'+ix).val(); 
+          if( temp_od >= 150){
+          od_arr_lv_150mm[iy] = $('#lv-'+jx+'-'+ix).val(); 
+          iy++;
+          }else{
+            if(temp_od>0){
+          od_arr_lv[iz] = $('#lv-'+jx+'-'+ix).val(); 
+          iz++;
+            }
+          }
+
+        } 
+      }//end OF Get  Multi Core LV Text Field
+
+      // Multi Core LV > 150
+      if(iy>0){
+        od_arr_lv_150mm.sort(descending);
+        
+        group_qty_lv_150mm = Math.ceil(iy/3);
+        iy = group_qty_lv_150mm*iy;
+
+        grouping('#section_lv_150mm','Multi LV > 150','LV150mm',group_qty_lv_150mm,3,od_arr_lv_150mm);
+
+      }// end of Multi Core LV > 150
+
+      // Multi Core LV < 150
+      if(iz>0){
+        od_arr_lv.sort(descending);
+      
+
+        group_qty_lv = Math.ceil(iz/5);
+        iz = group_qty_lv*iz;
+
+        grouping('#section_lv','Multi LV < 150','LV',group_qty_lv,5,od_arr_lv);
+      } // end of Multi Core LV < 150
+
+
+      //END OF MULTI CORE LV
+
+
+      //--------------------------------------------------------------------------------------
+      // CONTROL SIGNAL
+      iz = 0;
+      //Get CONTROL SIGNAL text field
+      for(jx=1;jx<=group_qty_control;jx++){
+      
+         for(ix=1;ix<=12;ix++){
+          od_arr_control[iz] = $('#control-'+jx+'-'+ix).val(); 
+          iz++;
+        } 
+      }//end OF Get CONTROL SIGNAL text field
+
+      //sorting
+      if(iz>0){
+      od_arr_control.sort(descending);
+      
+       group_qty_control = Math.ceil(iz/12);
+        iz = group_qty_control*iz;
+
+        grouping('#section_control','Control/Signal','control',group_qty_control,12,od_arr_control);
+      }
+
+      //END OF CONTROL SIGNAL
+      
+      //-----------------------------------------------------------------------------------
+      // End Of Power Cable Sorting
+      //-----------------------------------------------------------------------------------
+
+      }else{
+      //-----------------------------------------------------------------------------------
+      // Instrument Cable Sorting
+      //-----------------------------------------------------------------------------------
+
+      //make an array
+      for(jx=1;jx<=group_qty;jx++){
+      
+         for(ix=1;ix<=stacked;ix++){
+          od_arr[iz] = $('#OD-'+jx+'-'+ix).val(); 
+          iz++;
+        } 
+      }//end make array
+
+
+
+      //sorting
+      od_arr.sort(descending);
+      grouping('#section2','Instrument','OD',group_qty,stacked,od_arr);
+
+      //-----------------------------------------------------------------------------------
+      // End Of Instrument Cable Sorting Sorting
+      //-----------------------------------------------------------------------------------
+
+     }//end of type system
+  	 	
+return true;
+  	 });//End of Sorting Function
+
+
+
+
+    //sizing
+    $('#Sizing').click(function(){   
+      var iz = 0;
+      var od_arr = [];
+      var od_arr2 = [];
+      var iy = 0;
+
+      var i_temp = 0;
+      var od_temp = [];
+
+      scale = 1;
+
+      wid = $('#wid').val()*scale;
+      hei  = $('#hei').val()*scale;
+      //make tray
+      create_tray();
+
+
+      if(bool_system == true){
+       
+      //-------------------------------------------------------------
+      //            POWER CABLE SYSTEM SIZING
+      //-------------------------------------------------------------
+
+      if(bool_grouping == true){
+        
+      //-------------------------------------------------------------
+      //            AFTER GROUPING
+      //-------------------------------------------------------------         
+
+      // Sizing : Single Core CSA > 400 mm
+        if(group_qty_big>0){
+            iy = 0;
+            for(jx=1;jx<=group_qty_big;jx++){   
+                i_temp = 0;   
+             for(ix=1;ix<=6;ix++){
+                od_arr_big[iy] = $('#CSA-'+jx+'-'+ix).val();
+                od_temp[i_temp] = od_arr_big[iy];
+                iy++; 
+                i_temp++;
+                } 
+                draw_core(od_temp);
+                if(x_pos>0){
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            } 
+        
+        }
+        //End of Sizing : Single Core CSA > 400 mm
+
+        // Sizing : Single Core CSA < 400 mm
+        if(group_qty_core>0){
+            iy = 0;
+            for(jx=1;jx<=group_qty_core;jx++){  
+            i_temp = 0;    
+             for(ix=1;ix<=3;ix++){
+                od_arr_core[iy] = $('#core-'+jx+'-'+ix).val();
+                od_temp[i_temp] = od_arr_core[iy]; 
+                iy++; 
+                i_temp++;
+                } 
+                draw_tref3(od_temp);
+                if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Single Core CSA < 400 mm
+
+        // Sizing : Multi Core HV > 150mm
+        if(group_qty_150mm>0){
+                iy = 0;
+            for(jx=1;jx<=group_qty_150mm;jx++){   
+                i_temp = 0;   
+             for(ix=1;ix<=6;ix++){
+                od_arr_150mm[iy] = $('#150mm-'+jx+'-'+ix).val();
+                od_temp[i_temp] = od_arr_150mm[iy]; 
+                iy++; 
+                i_temp++;
+                } 
+                draw_multi_hv_150mm(od_temp);
+                 if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core HV > 150mm
+
+        // Sizing : Multi Core HV < 150mm
+        if(group_qty_multi>0){
+                 iy = 0;
+            for(jx=1;jx<=group_qty_multi;jx++){    
+             i_temp = 0;     
+             for(ix=1;ix<=5;ix++){
+                od_arr_multi[iy] = $('#multi-'+jx+'-'+ix).val();
+                 od_temp[i_temp] = od_arr_multi[iy]; 
+                iy++; 
+                i_temp++;
+                } 
+
+                draw_tref5(od_temp);
+                 if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core HV < 150mm
+
+
+        // Sizing : Multi Core LV > 150mm
+        if(group_qty_lv_150mm>0){
+              
+                 iy = 0;
+            for(jx=1;jx<=group_qty_lv_150mm;jx++){   
+            i_temp = 0;   
+             for(ix=1;ix<=3;ix++){
+                od_arr_lv_150mm[iy] = $('#LV150mm-'+jx+'-'+ix).val();
+                od_temp[i_temp] = od_arr_lv_150mm[iy]; 
+                ;
+                iy++; 
+                i_temp++; 
+                } 
+                draw_multi_lv_150mm(od_temp);
+                if(x_pos>0){
+                   
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core LV > 150mm
+
+          // Sizing : Multi Core LV < 150mm
+         if(group_qty_lv>0){
+                
+                 iy = 0;
+            for(jx=1;jx<=group_qty_lv;jx++){    
+             i_temp =   0;
+             for(ix=1;ix<=5;ix++){
+                od_arr_lv[iy] = $('#LV-'+jx+'-'+ix).val();
+                od_temp[i_temp] = od_arr_lv[iy]; 
+                iy++; 
+                i_temp++; 
+                } 
+                draw_tref5(od_temp);
+                if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core LV < 150mm
+
+        // Sizing : Control/Signal
+        if(group_qty_control>0){
+             iy = 0;
+            for(jx=1;jx<=group_qty_control;jx++){     
+            i_temp =   0; 
+             for(ix=1;ix<=12;ix++){
+                od_arr_control[iy] = $('#control-'+jx+'-'+ix).val();
+                  od_temp[i_temp] = od_arr_control[iy]; 
+                iy++; 
+                i_temp++;  
+                } 
+                draw_tref12(od_temp);
+                  if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }//end of Sizing : Control/Signal
+
+      //-------------------------------------------------------------
+      //            END OF AFTER GROUPING
+      //-------------------------------------------------------------
+        }else{
+          
+      //bool_grouping = true
+      //-----------------------------------------------------------------------------------
+        //Sorting Berdasarkan
+        //                      - Single Core CSA > 400
+        //                      - Single Core CSA < 400
+        //                      - Multi Core HV OD > 150
+        //                      - Multi Core HV OD < 150
+        //                      - Multi Core LV OD > 150
+        //                      - Multi Core LV OD < 150
+        //                      - Control/Signal         
+        //-----------------------------------------------------------------------------------      
+        
+
+      // SINGLE CORE  
+      //Get Single Core Text Field
+    
+      od_arr_big = [];
+      od_arr_core = [];
+      od_arr_control = [];
+      od_arr_lv = [];
+      od_arr_150mm = [];
+      od_arr_multi = [];
+      od_arr_lv_150mm = [];
+      iy = 0;
+      iz = 0;
+
+       qty_core = $("#qty_core").val();
+         qty_multi = $("#qty_multi").val();
+         qty_multi_lv = $("#qty_multi_lv").val();
+         qty_control = $("#qty_control").val();
+
+
+        group_qty_core = Math.ceil(qty_core/3);
+        
+
+        group_qty_multi = Math.ceil(qty_multi/stacked);
+       
+
+        group_qty_lv = Math.ceil(qty_multi_lv/stacked);
+        
+
+        group_qty_control = Math.ceil(qty_control/12);
+        
+
+      for(jx=1;jx<=group_qty_core;jx++){
+      
+         for(ix=1;ix<=3;ix++){
+          temp_od = $('#single-'+jx+'-'+ix).val();
+          if( temp_od >= csa400_od){
+          od_arr_big[iy] = $('#single-'+jx+'-'+ix).val();
+          iy++; 
+          }else{
+            if(temp_od>0){
+          od_arr_core[iz] = $('#single-'+jx+'-'+ix).val(); 
+          iz++;
+             }
+          }
+        } 
+      }//end of Get Single Core Text Field
+
+
+      // Single Core CSA > 400
+      if(iy>0){
+        group_qty_big = Math.ceil(iy/6);
+        iy = group_qty_big*iy;
+      }// End of Single Core CSA > 400
+
+      // Single Core CSA < 400
+      if(iz>0){
+        group_qty_core = Math.ceil(iz/3);
+        iz = group_qty_core*iz;
+      } // Single Core CSA < 400
+      
+      //END OF SINGLE CORE
+
+      // MULTI CORE HV
+      iz = 0;
+      iy = 0;
+      //Get  Multi Core HV Text Field
+      for(jx=1;jx<=group_qty_multi;jx++){
+      
+         for(ix=1;ix<=stacked;ix++){
+          //lets check for od => 150mm2
+          temp_od = $('#multi-'+jx+'-'+ix).val(); 
+          if( temp_od >= 150){
+          od_arr_150mm[iy] = $('#multi-'+jx+'-'+ix).val(); 
+          iy++;
+          }else{
+            if(temp_od>0){
+          od_arr_multi[iz] = $('#multi-'+jx+'-'+ix).val(); 
+          iz++;
+            }
+          }
+
+        } 
+      }//end of Get  Multi Core HV Text Field
+
+      // Multi Core HV > 150 
+      if(iy>0){
+        group_qty_150mm = Math.ceil(iy/3);
+        iy = group_qty_150mm*iy;
+      }// End OF Multi Core HV > 150 
+
+      // Multi Core HV < 150 
+      if(iz>0){
+        group_qty_multi = Math.ceil(iz/5);
+        iz = group_qty_multi*iz;
+        } // End OF Multi Core HV < 150 
+
+      // END OF MULTI CORE HV
+
+      // MULTI CORE LV
+      iz = 0;
+      iy = 0;
+
+      //Get  Multi Core LV Text Field
+      for(jx=1;jx<=group_qty_lv;jx++){
+      
+         for(ix=1;ix<=stacked;ix++){
+          //lets check for od => 150mm2
+          temp_od = $('#lv-'+jx+'-'+ix).val(); 
+          if( temp_od >= 150){
+          od_arr_lv_150mm[iy] = $('#lv-'+jx+'-'+ix).val(); 
+          iy++;
+          }else{
+            if(temp_od>0){
+          od_arr_lv[iz] = $('#lv-'+jx+'-'+ix).val(); 
+          iz++;
+            }
+          }
+
+        } 
+      }//end OF Get  Multi Core LV Text Field
+
+      // Multi Core LV > 150
+      if(iy>0){
+        group_qty_lv_150mm = Math.ceil(iy/3);
+        iy = group_qty_lv_150mm*iy;
+      }// end of Multi Core LV > 150
+
+      // Multi Core LV < 150
+      if(iz>0){
+        group_qty_lv = Math.ceil(iz/5);
+        iz = group_qty_lv*iz;
+      } // end of Multi Core LV < 150
+
+
+      //END OF MULTI CORE LV
+
+
+      //--------------------------------------------------------------------------------------
+      // CONTROL SIGNAL
+      iz = 0;
+      //Get CONTROL SIGNAL text field
+      for(jx=1;jx<=group_qty_control;jx++){
+      
+         for(ix=1;ix<=12;ix++){
+          od_arr_control[iz] = $('#control-'+jx+'-'+ix).val(); 
+          iz++;
+        } 
+      }//end OF Get CONTROL SIGNAL text field
+
+      //sorting
+      if(iz>0){
+       group_qty_control = Math.ceil(iz/12);
+        iz = group_qty_control*iz; }
+
+      //END OF CONTROL SIGNAL
+      
+      //-----------------------------------------------------------------------------------
+      // End Of Power Cable Sorting
+      //-----------------------------------------------------------------------------------
+
+ //-------------------------------------------------------------
+      //            AFTER GROUPING
+      //-------------------------------------------------------------         
+
+      // Sizing : Single Core CSA > 400 mm
+        if(group_qty_big>0){
+            iy = 0;
+            for(jx=1;jx<=group_qty_big;jx++){   
+                i_temp = 0;   
+             for(ix=1;ix<=6;ix++){
+                if(od_arr_big[iy]==undefined){
+                        od_temp[i_temp] = 0;
+                }else{
+                od_temp[i_temp] = od_arr_big[iy];
+                }
+                iy++; 
+                i_temp++;
+                } 
+                  draw_core(od_temp);
+
+                if(x_pos>0){
+                    X0 = x_pos;
+                    Y0 = y_pos;
+           
+                }
+            } 
+        
+        }
+        //End of Sizing : Single Core CSA > 400 mm
+
+        // Sizing : Single Core CSA < 400 mm
+        if(group_qty_core>0){
+            iy = 0;
+            for(jx=1;jx<=group_qty_core;jx++){  
+            i_temp = 0;    
+             for(ix=1;ix<=3;ix++){
+                if(od_arr_core[iy]==undefined){
+                        od_temp[i_temp] = 0;
+                }else{
+                od_temp[i_temp] = od_arr_core[iy]; 
+                }
+                iy++; 
+                i_temp++;
+                } 
+                draw_tref3(od_temp);
+                if(x_pos>0){
+                    X0 = x_pos;
+                    Y0 = y_pos;
+        
+                }
+            }
+        }// End of Sizing : Single Core CSA < 400 mm
+
+        // Sizing : Multi Core HV > 150mm
+        if(group_qty_150mm>0){
+                iy = 0;
+            for(jx=1;jx<=group_qty_150mm;jx++){   
+                i_temp = 0;   
+             for(ix=1;ix<=6;ix++){
+                if(od_arr_150mm[iy]==undefined){
+                    od_temp[i_temp] = 0;
+                }else{
+                od_temp[i_temp] = od_arr_150mm[iy]; 
+                }
+                iy++; 
+                i_temp++;
+                } 
+                draw_multi_hv_150mm(od_temp);
+                 if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core HV > 150mm
+
+        // Sizing : Multi Core HV < 150mm
+        if(group_qty_multi>0){
+                 iy = 0;
+            for(jx=1;jx<=group_qty_multi;jx++){    
+             i_temp = 0;     
+             for(ix=1;ix<=5;ix++){
+                if(od_arr_multi[iy]==undefined){
+                        od_temp[i_temp] = 0;
+                }else{
+                     od_temp[i_temp] = od_arr_multi[iy]; 
+                }
+                
+                iy++; 
+                i_temp++;
+                } 
+
+                draw_tref5(od_temp);
+                 if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core HV < 150mm
+
+
+        // Sizing : Multi Core LV > 150mm
+        if(group_qty_lv_150mm>0){
+              
+                 iy = 0;
+            for(jx=1;jx<=group_qty_lv_150mm;jx++){   
+            i_temp = 0;   
+             for(ix=1;ix<=3;ix++){
+                if(od_arr_lv_150mm[iy] == undefined){
+                od_temp[i_temp] = 0;
+                }else{
+                od_temp[i_temp] = od_arr_lv_150mm[iy]; 
+                }
+                iy++; 
+                i_temp++; 
+                } 
+                draw_multi_lv_150mm(od_temp);
+                if(x_pos>0){
+                   
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core LV > 150mm
+
+          // Sizing : Multi Core LV < 150mm
+         if(group_qty_lv>0){
+                
+                 iy = 0;
+            for(jx=1;jx<=group_qty_lv;jx++){    
+             i_temp =   0;
+             for(ix=1;ix<=5;ix++){
+                if(od_arr_lv[iy]==undefined){
+                    od_temp[i_temp] = 0;
+                }else{
+                    od_temp[i_temp] = od_arr_lv[iy]; 
+                }
+                
+                iy++; 
+                i_temp++; 
+                } 
+                draw_tref5(od_temp);
+                if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }// End of Sizing : Multi Core LV < 150mm
+
+        // Sizing : Control/Signal
+        if(group_qty_control>0){
+             iy = 0;
+            for(jx=1;jx<=group_qty_control;jx++){     
+            i_temp =   0; 
+             for(ix=1;ix<=12;ix++){
+                if(od_arr_control == undefined){
+                    od_temp[i_temp] = 0;
+                }else{
+                    od_temp[i_temp] = od_arr_control[iy]; 
+                }
+                  
+                iy++; 
+                i_temp++;  
+                } 
+                draw_tref12(od_temp);
+                  if(x_pos>0){
+                    
+                    X0 = x_pos;
+                    Y0 = y_pos;
+                }
+            }
+        }//end of Sizing : Control/Signal
+
+      //-------------------------------------------------------------
+      //            END OF AFTER GROUPING
+      //-------------------------------------------------------------
+        }
+       
+      }else{
+      //instrumetn system tray
+      //make an array
+      iz = 0;
+      iy = 0;
+
+       for(jx=1;jx<=3;jx++){
+        iy = 0;
+         for(ix=1;ix<=stack_arr[jx-1];ix++){
+            //arrange aray and sorting
+            if(jx==1){
+                //stack 1
+                od_arr_1[iy] = $('#OD-'+jx+'-'+ix).val();
+                od_arr_1.sort(descending);
+            }else if(jx==2){
+                //stack 2
+                od_arr_2[iy] = $('#OD-'+jx+'-'+ix).val();
+                od_arr_2.sort(descending);
+            }else{
+                //stack 3
+                od_arr_3[iy] = $('#OD-'+jx+'-'+ix).val();
+                od_arr_3.sort(descending);
+            }
+            iy++;
+        }
+      }
+
+        draw_inst(od_arr_1,od_arr_2,od_arr_3);
+        X0 = x_pos;
+        Y0 = y_pos;
+      }
+
+      //end make array
+
+      //Rekomendasi
+      var tray_rec = 0;
+      var wid_rec2 = (x_pos - (100+last_od+25)*0.20); //space
+      if(wid_rec2>600 && wid_rec2<900){
+        tray_rec = 900;
+      }else if(wid_rec2>450 && wid_rec2<600){
+        tray_rec = 600;
+      }else if(wid_rec2>300 && wid_rec2<450){
+        tray_rec = 450;
+      }else if(wid_rec2<300){
+        tray_rec = 300;
+      }else{
+        alert('Cable fill exceed > 900mm width of tray');
+        tray_rec = 1200;
+      }
+
+
+      var wid_rec   = (x_pos - (100+last_od+25))  ;
+      
+      wid_rec2 = wid_rec2 + wid_rec;
+
+      var wid_space = wid-wid_rec-25;
+
+      var persen = (wid_space/wid)*100;
+      persen
+
+      var hei_rec = od_arr[0]/1+od_arr[3]/1;
+
+
+      $('#wid_rec').html("Total Use Width : " +parseFloat(wid_rec).toFixed(2)+ "mm");
+      $('#wid_rec').append("<br> Spare Space : " +parseFloat(wid_space).toFixed(2)+ " mm ("+parseFloat(persen).toFixed(2)+" %) ");
+      if(persen<20){
+        alert('Please change size of tray to '+parseFloat(tray_rec).toFixed(2));
+        $('#wid_rec').append("<br>Please change tray size to "+parseFloat(tray_rec).toFixed(2)+ "mm");
+      }
+
+      //show arrow if space more than 5%
+      if(persen > 0) {
+
+    var X_space = X0 - last_od;
+    var Y_space = Y0 + 40;
+
+    //line horizontal
+    ctx.beginPath();
+    ctx.moveTo(X_space,Y_space); // go to coordinate
+    ctx.lineTo(x+w_tray,Y_space);  
+    ctx.strokeStyle = '#FF0000'; 
+    ctx.stroke();
+    ctx.closePath();
+
+    //line vertikal left
+    ctx.beginPath();
+    ctx.moveTo(X_space,(Y_space - 8) ); // go to coordinate
+    ctx.lineTo(X_space,(Y_space + 8));  
+    ctx.strokeStyle = '#FF0000'; 
+    ctx.stroke();
+    ctx.closePath();
+
+    //line vertikal right
+    ctx.beginPath();
+    ctx.moveTo(x+w_tray,(Y_space - 8) ); // go to coordinate
+    ctx.lineTo(x+w_tray,(Y_space + 8));  
+    ctx.strokeStyle = '#FF0000'; 
+    ctx.stroke();
+    ctx.closePath();
+
+    //text
+    ctx.font="14px Verdana";
+    ctx.fillText(parseFloat(wid_space).toFixed(2)+" mm ("+parseFloat(persen).toFixed(2)+" %)",(X_space + ((wid - X_space)/2)),Y_space+22);
+      }
+
+
+      if(hei_rec>hei){
+        $('#wid_rec').append("<br>Please change tray height > "+hei_rec+ "mm");
+      }
+
+      
+      $('#recomend').show('fast');
+    
+
+
+      
+      //draw(wid,hei,scale,od);
+      //draw_tref5(wid,hei,scale,od_arr);
+return true;
+     });//end of button Sizing
+
+
+
+  });
+
+</script>
+ <style type="text/css">
+      canvas { border: 1px solid black; }
+      #grouping {
+      	width :100px;
+      	background-color: LightYellow;
+      }
+      .sub-section{
+        background-color: LightYellow;
+        border:solid 1px red;
+        padding-left: 10px;
+        padding-top: 5px;
+        margin-bottom: 5px;
+      }
+      #recomend{
+        color:red; 
+        background-color:lightyellow; 
+        border:dashed 1px #ccc; width:100%;
+        padding-left:5px;
+        padding-bottom:5px;
+      }
+
+      .css_hide{
+        display:none
+      }
+
+      .css_show{
+        
+      }
+
+}
+ </style>
+
+</head>
+<body id="main_body" >
+
+	
+	<div id="form_container">
+	<img src="assets/decilogo.png" alt="">
+
+		<h1><a>{Sizing : Cable Tray}</a></h1>
+		<form id="form_676462" class="appnitro"  method="post" action="">
+					<div class="form_description">
+			<h2>Cable Tray Sizing</h2>
+			<p> <a href="manual/manual.htm" target=blank > Manual Operational </a> | <a href="CableTraySizing/CableTraySizing.mp4"> Video </a></p>
+            
+</p>
+		</div>		
+	  
+
+		<div style="float:left; width=300px">
+    <div id="recomend">
+    <h3>The recommended size :  </h3>
+        <span id="wid_rec"></span><br>
+
+    <span id="hei_rec"></span>
+    </div>
+
+		<ul>
+			<h2> Parameter : </h2>
+    
+      <li id="li_1" >
+    <label class="description" for="element_1">System Type : </label>
+    <div>
+      <input type="radio" name="type_system" value="power" id="power" checked>Power  <br>
+<input type="radio" name="type_system" value="inst" id="inst">Instrument <br>
+
+    </div> 
+    </li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Width : </label>
+		<div>
+			<input type="text" name="wid" id="wid" value="600">  mm 
+     
+
+		</div> 
+		</li>
+
+		<li id="li_1" >
+		<label class="description" for="element_1">Height : </label>
+		<div>
+			<input type="text" name="hei" id="hei" value="150">  mm
+        
+		</div> 
+		</li>
+
+	
+
+    <!-- Power Cable Qty -->
+    <div id="power_qty">
+		<li id="li_1" >
+		<label class="description" for="element_1">Qty of Single Core : </label>
+		<div>
+			<input type="text" name="qty_core" id="qty_core" value="5"> 		</div> 
+		</li>
+
+    <li id="li_1" >
+    <label class="description" for="element_1">Qty of Multi Core HV : </label>
+    <div>
+      <input type="text" name="qty_multi" id="qty_multi" value="5">     </div> 
+    </li>
+
+     <li id="li_1" >
+    <label class="description" for="element_1">Qty of Multi Core LV : </label>
+    <div>
+      <input type="text" name="qty_multi_lv" id="qty_multi_lv" value="5">     </div> 
+    </li>
+
+
+    <li id="li_1" >
+    <label class="description" for="element_1">Qty of Control/Signal : </label>
+    <div>
+      <input type="text" name="qty_control" id="qty_control" value="5">     </div> 
+    </li>
+
+
+		<li class="buttons">
+			    <input type="hidden" name="form_id" value="676462" />
+			    
+				<input id="Populate_power" class="button_text" type="button" name="Populate_inst" value="Populate" />
+		</li>
+		</div> <!-- Power Cable Qty End -->
+
+    <!-- Instrument Cable Qty -->
+    <div id="instrument_qty">
+      <li id="li_1" >
+      <label class="description" for="element_1">Qty of Cable : </label>
+    <div>
+      <input type="text" name="qty_inst" id="qty_inst" value="5">     </div> 
+    </li>
+
+
+    <li class="buttons">
+          <input type="hidden" name="form_id" value="676462" />
+          
+        <input id="Populate_inst" class="button_text" type="button" name="Populate_inst" value="Populate" />
+    </li>
+
+    </div> <!-- Instrument Cable Qty End -->
+
+  
+
+		<h4> OD : </h4>
+		<li id="li_1" >
+
+		<div id="section2"> </div>
+    <div id="section_big"> </div>
+    <div id="section_core"> </div>
+    <div id="section_150mm"> </div>
+    <div id="section_multi"> </div>
+    <div id="section_lv_150mm"> </div>
+    <div id="section_lv"> </div>
+    <div id="section_control"> </div> 
+		</li>
+
+				<li class="buttons">
+			    <input type="hidden" name="form_id" value="676462" />
+			    <input id="Sorting" class="button_text" type="button" name="Sorting" value="Auto Grouping" />
+				<input id="Sizing" class="button_text" type="button" name="Sizing" value="Sizing" />
+		</li>
+	</div>
+		<div style="float:right; width:1150px; padding-left:80px">
+		<h2> Result </h2>
+		
+		
+    <canvas id="canvas" width="1100" height="600"></canvas>
+	</div>
+		
+					</ul>
+
+
+		<br>
+		<br>
+    <div style="visibility:hidden">
+  <span id="result"></span><br>
+    
+    <span id="result2"></span>
+</div>
+		<div id="footer">
+			Copyright &copy; by DECI Team
+		</div>
+	</div>
+	<img id="bottom" src="bottom.png" alt="">
+ 
+
+	
+	</body>
+</html>
